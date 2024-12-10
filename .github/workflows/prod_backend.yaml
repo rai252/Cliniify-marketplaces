@@ -1,0 +1,62 @@
+name: Deploy Backend (Production)
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'backend/**'
+      - '.github/workflows/prod_backend.yaml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./backend # Only applies to steps with "run"
+
+env:
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  EMAIL_ENABLED: False
+  SMS_ENABLED: False
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.10.6]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: ./backend/requirements/production.txt
+        env:
+          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+
+      - name: Install dependencies
+        run: pip install -r ./requirements/production.txt
+
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+
+      - name: Deploy
+        uses: easingthemes/ssh-deploy@main
+        env:
+          REMOTE_HOST: ${{ secrets.PROD_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.PROD_REMOTE_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          SOURCE: ./backend
+          ARGS: --delete --exclude-from='./backend/.gitignore'
+          TARGET: ${{ secrets.PROD_REMOTE_BASE_PATH }}
+          SCRIPT_AFTER: |
+            ${{ secrets.PROD_REMOTE_BASE_PATH }}/backend/env/bin/pip install -r ${{ secrets.PROD_REMOTE_BASE_PATH }}/backend/requirements/production.txt
+            ${{ secrets.PROD_REMOTE_BASE_PATH }}/backend/env/bin/python ${{ secrets.PROD_REMOTE_BASE_PATH }}/backend/manage.py migrate --noinput
+            sudo supervisorctl restart cliniify_marketplace_gunicorn
+            sudo supervisorctl restart cliniify_marketplace_huey

@@ -1,0 +1,18 @@
+{% autoescape off %}
+
+You've been invited to join {{ establishment.name }}
+
+Dear {{ doctor.full_name }},
+
+You have been invited to join {{ establishment.name }} as a staff member.
+
+To accept the invitation, please click the link below:
+
+Accept Invitation: {{ abs_url }}
+
+If you did not request this invitation or do not wish to join the establishment, you can simply ignore this email.
+
+Thank you,
+The {{ establishment.name }} Team
+
+{% endautoescape %}

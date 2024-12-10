@@ -1,0 +1,17 @@
+Dear {{ appointment.patient.full_name }},
+
+We are pleased to confirm your upcoming appointment with {{ appointment.doctor.full_name }}.
+
+Appointment Details:
+- Date and Time: {{ appointment.date|date:"d M, Y" }} at {{ appointment.start_time|time:"g:i A" }}
+- Location: {% if address %} {{ address.street }},{{ address.city }},{{ address.state }},{{ address.postal_code }} {% else %} {{ appointment.doctor.full_name }} {% endif %}
+
+{% if appointment.doctor.phone %}
+For any queries, feel free to contact us at: {{ appointment.doctor.phone }}
+{% endif %}
+
+We look forward to providing you with quality healthcare during your appointment. If you have any specific preparations
+or documents required, please let us know in advance.
+
+Wishing you good health always,
+{{ appointment.doctor.full_name }}

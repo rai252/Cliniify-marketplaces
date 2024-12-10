@@ -1,0 +1,16 @@
+Dear {{ appointment.patient.full_name }},
+
+We regret to inform you that your appointment with {{ appointment.doctor.full_name }} has been cancelled.
+
+Appointment Details:
+- Date and Time: {{ appointment.date|date:"d M, Y" }} at {{ appointment.start_time|time:"g:i A" }}
+- Location: {% if address %} {{ address.street }},{{ address.city }},{{ address.state }},{{ address.postal_code }} {% else %} {{ appointment.doctor.full_name }} {% endif %}
+
+{% if appointment.doctor.phone %}
+For any queries, feel free to contact us at: {{ appointment.doctor.phone }}
+{% endif %}
+
+We apologize for any inconvenience this may cause. If you have any concerns or need assistance, please don't hesitate to reach out.
+
+Wishing you good health always,
+The Team at {{ appointment.doctor.full_name }}
